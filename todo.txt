@@ -1,0 +1,11 @@
+- GET: Create session
+- GET: Request shuriken
+- GET: Next Level
+- POST: Join session
+- POST: Play a card
+- POST: Choose a character
+- POST: Start Game
+- POST: Replay game
+- POST: Create Account
+- POST: Login
+- POST: Forgot password
