@@ -6,7 +6,6 @@ import dotenv from 'dotenv';
 
 import authRoutes from './routes/authRoutes.js';
 import sessionRoutes from './routes/sessionRoutes.js';
-import gameRoutes from './routes/gameRoutes.js';
 
 dotenv.config();
 
@@ -20,7 +19,6 @@ app.use(bodyParser.json());
 // Routes
 app.use('/auth', authRoutes);
 app.use('/session', sessionRoutes);
-app.use('/game', gameRoutes);
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI, {
