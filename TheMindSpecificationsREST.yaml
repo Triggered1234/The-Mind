@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   title: The Mind Online API
-  description: RESTful API for an online version of The Mind card game
+  description: API for an online version of The Mind card game
   version: 1.0.0
 servers:
   - url: https://api.themindgame.com
@@ -11,19 +11,19 @@ paths:
   /sessions:
     post:
       summary: Create a new game session
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                player_id:
-                  type: string
-                max_players:
-                  type: integer
+      parameters:
+        - name: player_id
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: max_players
+          in: query
+          required: false
+          schema:
+            type: integer
       responses:
-        '201':
+        '200':
           description: Session created
           content:
             application/json:
@@ -40,8 +40,36 @@ paths:
                       type: string
                   status:
                     type: string
-        '400':
-          description: Invalid request
+
+  /sessions/{session_id}:
+    get:
+      summary: Retrieve session details
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Session data retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  session_id:
+                    type: string
+                  max_players:
+                    type: integer
+                  status:
+                    type: string
+                  level:
+                    type: integer
+                  lives:
+                    type: integer
+                  shurikens:
+                    type: integer
 
   /sessions/{session_id}/players:
     post:
@@ -64,7 +92,7 @@ paths:
                 nickname:
                   type: string
       responses:
-        '201':
+        '200':
           description: Player joined
           content:
             application/json:
@@ -79,10 +107,46 @@ paths:
                     type: string
         '404':
           description: Session not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Session not found"
 
-  /sessions/{session_id}/shuriken-uses:
+    get:
+      summary: Retrieve list of players in the session
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Player list retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  players:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        player_id:
+                          type: string
+                        nickname:
+                          type: string
+                        character_id:
+                          type: string
+
+  /sessions/{session_id}/shuriken-requests:
     post:
-      summary: Use a shuriken in the session
+      summary: Request to use a shuriken
       parameters:
         - name: session_id
           in: path
@@ -100,7 +164,7 @@ paths:
                   type: string
       responses:
         '200':
-          description: Shuriken used
+          description: Shuriken request status
           content:
             application/json:
               schema:
@@ -160,6 +224,32 @@ paths:
                   status:
                     type: string
 
+    get:
+      summary: Retrieve current played cards
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Cards played in the session
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cards_played:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        player_id:
+                          type: string
+                        card:
+                          type: integer
+
   /sessions/{session_id}/characters:
     post:
       summary: Choose a character
@@ -197,28 +287,18 @@ paths:
                   status:
                     type: string
 
-  /sessions/{session_id}/game:
-    patch:
-      summary: Update game state (start or replay)
+  /sessions/{session_id}/start:
+    post:
+      summary: Start the game
       parameters:
         - name: session_id
           in: path
           required: true
           schema:
             type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                action:
-                  type: string
-                  enum: [start, replay]
       responses:
         '200':
-          description: Game state updated
+          description: Game started
           content:
             application/json:
               schema:
@@ -227,7 +307,53 @@ paths:
                   status:
                     type: string
 
-  /users:
+  /sessions/{session_id}/replay:
+    post:
+      summary: Replay the game with the same players
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Game restarted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+
+  /sessions/{session_id}/state:
+    get:
+      summary: Retrieve current game state
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Game state retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  level:
+                    type: integer
+                  lives:
+                    type: integer
+                  shurikens:
+                    type: integer
+                  status:
+                    type: string
+
+  /auth/users:
     post:
       summary: Register a new user
       requestBody:
@@ -244,7 +370,7 @@ paths:
                 password:
                   type: string
       responses:
-        '201':
+        '200':
           description: User registered successfully
           content:
             application/json:
@@ -256,9 +382,33 @@ paths:
                   username:
                     type: string
 
-  /login-sessions:
+  /auth/users/{user_id}:
+    get:
+      summary: Retrieve user profile
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User profile retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user_id:
+                    type: string
+                  username:
+                    type: string
+                  email:
+                    type: string
+
+  /auth/sessions:
     post:
-      summary: Create a login session (authenticate user)
+      summary: Log in to the system
       requestBody:
         required: true
         content:
@@ -282,12 +432,28 @@ paths:
                     type: string
                   token:
                     type: string
-        '401':
-          description: Invalid credentials
         '404':
           description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "User not found"
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid email or password"
 
-  /password-resets:
+  /auth/password-resets:
     post:
       summary: Request password reset
       requestBody:
@@ -309,5 +475,14 @@ paths:
                 properties:
                   status:
                     type: string
+                    example: "Password reset email sent"
         '404':
           description: Email not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Email not found"
