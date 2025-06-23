@@ -1,176 +1,120 @@
-
 // src/app/components/Rules.tsx
+'use client';
+
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import './styles/Rules.css';
 
-const Rules: React.FC = () => {
-  const navigate = useNavigate();
+type CurrentPage = 'home' | 'auth' | 'setup' | 'create' | 'join' | 'lobby' | 'game' | 'rules' | 'settings';
 
+interface RulesProps {
+  navigate: (page: CurrentPage) => void;
+}
+
+const Rules: React.FC<RulesProps> = ({ navigate }) => {
   return (
-    <div className="rules">
+    <div className="rules-page">
       <div className="rules-container">
-        <button className="back-button" onClick={() => navigate('/')}>
+        <button 
+          className="back-button"
+          onClick={() => navigate('home')}
+        >
           ← Înapoi
         </button>
 
-        <h1>Regulile Jocului "The Mind"</h1>
+        <div className="rules-header">
+          <h1>Regulile Jocului "The Mind"</h1>
+          <p>Învață să joci cel mai captivant joc cooperativ!</p>
+        </div>
 
         <div className="rules-content">
-          <section>
+          <section className="rule-section">
             <h2>🎯 Obiectivul Jocului</h2>
             <p>
               "The Mind" este un joc cooperativ în care jucătorii trebuie să joace toate cărțile 
-              lor în ordine crescătoare, fără a comunica între ei! Trebuie să vă sincronizați 
-              mental pentru a reuși.
+              lor în ordine crescătoare, fără a comunica între ei! Singurul vostru ghid este 
+              intuiția și sincronizarea perfectă cu echipa.
             </p>
           </section>
 
-          <section>
-            <h2>🃏 Cum se Joacă</h2>
-            <ol>
-              <li><strong>La Nivelul 1:</strong> Fiecare jucător primește 1 carte</li>
-              <li><strong>La Nivelul 2:</strong> Fiecare jucător primește 2 cărți</li>
-              <li><strong>La Nivelul N:</strong> Fiecare jucător primește N cărți</li>
-              <li>Cărțile au valori de la 1 la 100</li>
-              <li>Trebuie să jucați toate cărțile în ordine crescătoare</li>
-              <li><strong>IMPORTANT:</strong> Nu aveți voie să comunicați!</li>
-            </ol>
-          </section>
-
-          <section>
-            <h2>❤️ Vieți și Shurikens</h2>
+          <section className="rule-section">
+            <h2>🃏 Componentele Jocului</h2>
             <ul>
-              <li><strong>Vieți:</strong> Începeți cu 3 vieți</li>
-              <li>Pierdeți o viață dacă jucați o carte greșită</li>
-              <li>Jocul se termină când rămâneți fără vieți</li>
-              <li><strong>Shurikens:</strong> Începeți cu 1 shuriken</li>
-              <li>Un shuriken elimină cartea cea mai mică din toate mâinile</li>
-              <li>Câștigați shurikens bonus la nivelurile 3, 6 și 9</li>
+              <li><strong>Cărți numerotate:</strong> de la 1 la 100</li>
+              <li><strong>Vieți:</strong> Începeți cu un număr limitat de vieți</li>
+              <li><strong>Shuriken:</strong> Instrumente speciale pentru ajutor</li>
+              <li><strong>Niveluri:</strong> Dificultatea crește treptat</li>
             </ul>
           </section>
 
-          <section>
-            <h2>🏆 Condiții de Victorie</h2>
-            <ul>
-              <li><strong>Câștigați:</strong> Completați toate cele 12 niveluri</li>
-              <li><strong>Pierdeți:</strong> Rămâneți fără vieți</li>
-              <li>Pentru a trece la nivelul următor, trebuie să jucați toate cărțile corect</li>
-            </ul>
+          <section className="rule-section">
+            <h2>🎮 Cum să Joci</h2>
+            <div className="steps">
+              <div className="step">
+                <h3>1. Primește Cărțile</h3>
+                <p>La fiecare nivel, fiecare jucător primește un număr de cărți egal cu nivelul curent.</p>
+              </div>
+              <div className="step">
+                <h3>2. Sincronizare</h3>
+                <p>Fără a vorbi, jucătorii trebuie să joace cărțile în ordine crescătoare.</p>
+              </div>
+              <div className="step">
+                <h3>3. Intuiție</h3>
+                <p>Folosește-ți instinctul pentru a decide când să joci o carte!</p>
+              </div>
+              <div className="step">
+                <h3>4. Progresare</h3>
+                <p>Completează nivelul pentru a avansa la următorul.</p>
+              </div>
+            </div>
           </section>
 
-          <section>
-            <h2>💡 Sfaturi</h2>
+          <section className="rule-section">
+            <h2>⚡ Shuriken - Instrumente Speciale</h2>
+            <p>
+              Shuriken-urile sunt instrumente puternice care îți permit să "arunci" cea mai mică 
+              carte din mâna fiecărui jucător. Folosește-le cu înțelepciune când echipa este blocată!
+            </p>
+          </section>
+
+          <section className="rule-section">
+            <h2>💖 Sistemul de Vieți</h2>
+            <p>
+              Dacă jucați o carte în ordine greșită, pierdeți o viață. Când rămâneți fără vieți, 
+              jocul se termină. Colaborarea și timingul perfect sunt esențiale!
+            </p>
+          </section>
+
+          <section className="rule-section">
+            <h2>🏆 Câștigarea Jocului</h2>
+            <p>
+              Echipa câștigă atunci când completează cu succes toate nivelurile fără să rămână 
+              fără vieți. Fiecare nivel completat este o victorie comună!
+            </p>
+          </section>
+
+          <section className="rule-section tips">
+            <h2>💡 Sfaturi pentru Succes</h2>
             <ul>
-              <li>Concentrați-vă și simțiți ritmul celorlalți jucători</li>
-              <li>Dacă aveți o carte foarte mică, jucați-o rapid</li>
-              <li>Dacă aveți o carte foarte mare, așteptați</li>
-              <li>Folosiți shurikens când vă blocați</li>
-              <li>Răbdarea este cheia succesului!</li>
+              <li>Concentrați-vă pe sincronizare, nu pe cărți</li>
+              <li>Dezvoltați un ritm comun cu echipa</li>
+              <li>Fiți răbdători - timpul perfect este crucial</li>
+              <li>Folosiți shuriken-urile strategic</li>
+              <li>Comunicați prin priviri și gesturi subtile</li>
             </ul>
           </section>
         </div>
+
+        <div className="rules-footer">
+          <button 
+            className="play-button"
+            onClick={() => navigate('home')}
+          >
+            🎮 Înapoi la Meniu Principal
+          </button>
+        </div>
       </div>
-
-      <style jsx>{`
-        .rules {
-          min-height: 100vh;
-          background: linear-gradient(180deg, #00000D 15.17%, #0E182F 40.5%, #1C304E 54.27%, #07182B 73.38%, #22120D 93.08%);
-          padding: 20px;
-        }
-
-        .rules-container {
-          max-width: 800px;
-          margin: 0 auto;
-          background: rgba(255, 255, 255, 0.1);
-          backdrop-filter: blur(10px);
-          border-radius: 20px;
-          padding: 40px;
-          position: relative;
-        }
-
-        .back-button {
-          position: absolute;
-          top: 20px;
-          left: 20px;
-          background: transparent;
-          border: 2px solid rgba(255, 255, 255, 0.3);
-          color: white;
-          padding: 10px 15px;
-          border-radius: 10px;
-          cursor: pointer;
-          transition: all 0.3s ease;
-        }
-
-        .back-button:hover {
-          background: rgba(255, 255, 255, 0.1);
-          border-color: rgba(255, 255, 255, 0.5);
-        }
-
-        h1 {
-          color: white;
-          font-size: 32px;
-          font-weight: 800;
-          text-align: center;
-          margin-bottom: 40px;
-          text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-        }
-
-        .rules-content {
-          color: white;
-        }
-
-        section {
-          margin-bottom: 30px;
-          background: rgba(255, 255, 255, 0.05);
-          padding: 25px;
-          border-radius: 15px;
-        }
-
-        h2 {
-          color: #C2730A;
-          font-size: 24px;
-          font-weight: 700;
-          margin-bottom: 15px;
-        }
-
-        p, li {
-          font-size: 16px;
-          line-height: 1.6;
-          margin-bottom: 10px;
-        }
-
-        ol, ul {
-          padding-left: 25px;
-        }
-
-        li {
-          margin-bottom: 8px;
-        }
-
-        strong {
-          color: #C2730A;
-          font-weight: 600;
-        }
-
-        @media (max-width: 768px) {
-          .rules-container {
-            padding: 30px 20px;
-          }
-
-          h1 {
-            font-size: 24px;
-          }
-
-          h2 {
-            font-size: 20px;
-          }
-
-          section {
-            padding: 20px;
-          }
-        }
-      `}</style>
     </div>
   );
 };
+
 export default Rules;

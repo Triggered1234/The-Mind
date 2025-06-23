@@ -1,0 +1,191 @@
+/* Home Component Styles */
+
+.home {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(180deg, #00000D 15.17%, #0E182F 40.5%, #1C304E 54.27%, #07182B 73.38%, #22120D 93.08%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+/* Ellipse background */
+.ellipse-5 {
+  position: absolute;
+  width: 2000px;
+  height: 815px;
+  left: -270px;
+  top: 359px;
+  border-radius: 50%;
+  background: linear-gradient(178.43deg, #152842 16.96%, #824728 33.88%, #C2730A 45.77%, #824728 59.14%, #3B1800 71.36%);
+  box-shadow: inset 0px 4px 4px rgba(0, 0, 0, 0.25);
+  opacity: 0.8;
+}
+
+/* Logo */
+.logo-the-mind {
+  position: absolute;
+  z-index: 10;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 30px 40px;
+  border: 2px solid rgba(194, 115, 10, 0.3);
+}
+
+.game-title {
+  font-size: 48px;
+  font-weight: 800;
+  color: #C2730A;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+  margin-bottom: 10px;
+  letter-spacing: 2px;
+}
+
+.game-subtitle {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 400;
+  margin-bottom: 5px;
+}
+
+.user-status {
+  font-size: 12px;
+  color: #4CAF50;
+  font-weight: 600;
+}
+
+/* Buttons container */
+.buttons-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  max-width: 900px;
+  max-height: 900px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Menu buttons */
+.menu-button {
+  position: absolute;
+  width: 180px;
+  height: 120px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.menu-button:hover {
+  transform: translateY(-5px) scale(1.05);
+  background: rgba(194, 115, 10, 0.3);
+  border-color: rgba(194, 115, 10, 0.6);
+  box-shadow: 0 10px 25px rgba(194, 115, 10, 0.3);
+}
+
+/* Button positioning */
+.menu-button.play {
+  top: 15%;
+  left: 20%;
+  transform: translate(-50%, -50%);
+}
+
+.menu-button.online {
+  top: 50%;
+  right: 15%;
+  transform: translate(50%, -50%);
+}
+
+.menu-button.rules {
+  bottom: 15%;
+  left: 50%;
+  transform: translate(-50%, 50%);
+}
+
+.menu-button.settings {
+  top: 50%;
+  left: 15%;
+  transform: translate(-50%, -50%);
+}
+
+.menu-button.auth {
+  top: 15%;
+  right: 20%;
+  transform: translate(50%, -50%);
+}
+
+/* Info panel */
+.info-panel {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  padding: 15px 25px;
+  text-align: center;
+  max-width: 500px;
+  z-index: 5;
+}
+
+.info-panel p {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+  margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .logo-the-mind {
+    padding: 20px 30px;
+  }
+  
+  .game-title {
+    font-size: 36px;
+  }
+
+  .menu-button {
+    width: 140px;
+    height: 100px;
+    font-size: 12px;
+  }
+
+  .info-panel {
+    bottom: 20px;
+    margin: 0 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .game-title {
+    font-size: 28px;
+  }
+
+  .menu-button {
+    width: 120px;
+    height: 80px;
+    font-size: 11px;
+  }
+
+  .logo-the-mind {
+    padding: 15px 20px;
+  }
+}

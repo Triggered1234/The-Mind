@@ -1,0 +1,235 @@
+/* SetupPlayer Component Styles */
+
+.setup-page {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #00000D 15.17%, #0E182F 40.5%, #1C304E 54.27%, #07182B 73.38%, #22120D 93.08%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.setup-container {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 40px;
+  max-width: 600px;
+  width: 100%;
+  position: relative;
+}
+
+.back-button {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 10px 15px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.back-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.logout-button {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: transparent;
+  border: 2px solid rgba(255, 100, 100, 0.5);
+  color: #ff6b6b;
+  padding: 10px 15px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.logout-button:hover {
+  background: rgba(255, 100, 100, 0.1);
+  border-color: rgba(255, 100, 100, 0.8);
+}
+
+.setup-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.setup-header h1 {
+  color: #C2730A;
+  font-size: 32px;
+  font-weight: 800;
+  margin-bottom: 10px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.setup-header p {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 16px;
+}
+
+.nickname-section {
+  margin-bottom: 30px;
+}
+
+.input-group {
+  margin-bottom: 20px;
+}
+
+.input-group label {
+  display: block;
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 15px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: #C2730A;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.input-group input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.char-count {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+  text-align: right;
+  margin-top: 5px;
+}
+
+.save-button {
+  background: linear-gradient(45deg, #C2730A, #824728);
+  border: none;
+  color: white;
+  padding: 15px 30px;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.save-button:hover:not(.disabled) {
+  background: linear-gradient(45deg, #D68A0B, #A05832);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(194, 115, 10, 0.4);
+}
+
+.save-button.disabled {
+  background: rgba(255, 255, 255, 0.2);
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.player-info {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 20px;
+  text-align: left;
+}
+
+.player-id {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  font-family: monospace;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.next-steps {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  padding: 20px;
+}
+
+.next-steps h3 {
+  color: #C2730A;
+  font-size: 16px;
+  margin-bottom: 15px;
+}
+
+.next-steps ul {
+  color: rgba(255, 255, 255, 0.8);
+  padding-left: 0;
+  list-style: none;
+  margin-bottom: 20px;
+}
+
+.next-steps li {
+  padding: 5px 0;
+  font-size: 14px;
+}
+
+.action-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.create-session-button,
+.join-session-button {
+  background: linear-gradient(45deg, #C2730A, #824728);
+  border: none;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.create-session-button:hover,
+.join-session-button:hover {
+  background: linear-gradient(45deg, #D68A0B, #A05832);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(194, 115, 10, 0.4);
+}
+
+@media (max-width: 600px) {
+  .setup-container {
+    padding: 30px 20px;
+  }
+
+  .setup-header h1 {
+    font-size: 24px;
+  }
+
+  .back-button, .logout-button {
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+
+  .logout-button {
+    top: 60px;
+    right: 20px;
+  }
+
+  .action-buttons {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+}
