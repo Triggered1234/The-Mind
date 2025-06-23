@@ -82,6 +82,26 @@ const GameBoard: React.FC<GameBoardProps> = ({ sessionId, navigate }) => {
     }
   };
 
+const handleInitiateShurikenVote = async () => {
+  if (!gameState || gameState.shurikens <= 0) return;
+
+  try {
+    await initiateShurikenVote();
+    setGameMessage('🗡️ Votare shuriken inițiată!');
+  } catch (err) {
+    console.error('Error initiating shuriken vote:', err);
+  }
+};
+
+const handleCastShurikenVote = async (vote: boolean) => {
+  try {
+    await castShurikenVote(vote);
+    setGameMessage(vote ? '✅ Ai votat DA pentru shuriken' : '❌ Ai votat NU pentru shuriken');
+  } catch (err) {
+    console.error('Error casting shuriken vote:', err);
+  }
+};
+
   const handleUseShuriken = async () => {
     if (!gameState || gameState.shurikens <= 0) return;
 
