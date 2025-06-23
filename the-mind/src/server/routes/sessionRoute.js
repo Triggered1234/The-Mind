@@ -29,8 +29,10 @@ export const createSessionRouter = (sessionController, gameController) => {
   router.post('/:sessionId/cards', gameController.playCard);            // POST /api/sessions/:sessionId/cards
   router.get('/:sessionId/cards', gameController.getCardsPlayed);       // GET /api/sessions/:sessionId/cards
   
-  // Special Actions Routes
-  router.post('/:sessionId/shuriken', gameController.useShuriken);      // POST /api/sessions/:sessionId/shuriken
+  // Shuriken Routes (Vote-Based)
+  router.post('/:sessionId/shuriken/initiate', gameController.initiateShurikenVote); // POST /api/sessions/:sessionId/shuriken/initiate
+  router.post('/:sessionId/shuriken/vote', gameController.castShurikenVote);         // POST /api/sessions/:sessionId/shuriken/vote
+  router.post('/:sessionId/shuriken', gameController.useShuriken);                   // POST /api/sessions/:sessionId/shuriken (legacy - returns error)
   
   // Debug Routes (optional - for development)
   router.get('/:sessionId/players/:playerId/hand', gameController.getPlayerHand); // GET /api/sessions/:sessionId/players/:playerId/hand

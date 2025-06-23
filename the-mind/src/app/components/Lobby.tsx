@@ -1,8 +1,8 @@
 // src/app/components/Lobby.tsx
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
 import { useGame } from '../context/GameContext';
 import { Player } from '../services/api';
+import './styles/Lobby.css';
 
 const CHARACTERS = [
   { id: 'ninja', name: 'Ninja', emoji: '🥷' },
@@ -167,7 +167,7 @@ const Lobby: React.FC<LobbyProps> = ({ sessionId: propSessionId, navigate }) => 
         <div className="lobby-content">
           {/* Players List */}
           <div className="players-section">
-            <h2>Jucători ({session.players.length}/{session.max_players})</h2>
+            <h2>👥 Jucători ({session.players.length}/{session.max_players})</h2>
             <div className="players-grid">
               {session.players.map((player: Player, index: number) => (
                 <div 
@@ -179,73 +179,74 @@ const Lobby: React.FC<LobbyProps> = ({ sessionId: propSessionId, navigate }) => 
                   </div>
                   <div className="player-name">{player.nickname}</div>
                   <div className="player-status">
-                    {player.is_ready ? '✅ Gata' : '⏳ Nu e gata'}
+                    {player.is_ready ? '✅ Gata' : '⏳ Se pregătește'}
                   </div>
-                  {player.player_id === playerId && (
-                    <div className="player-badge">Tu</div>
-                  )}
-                </div>
-              ))}
-              
-              {/* Empty slots */}
-              {Array.from({ length: session.max_players - session.players.length }).map((_, index) => (
-                <div key={`empty-${index}`} className="player-card empty">
-                  <div className="player-character">⭕</div>
-                  <div className="player-name">Se așteaptă jucător...</div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Character Selection */}
-          <div className="character-section">
-            <h3>Alege Caracterul Tău</h3>
-            <div className="character-grid">
-              {CHARACTERS.map((character) => (
-                <button
-                  key={character.id}
-                  className={`character-button ${currentPlayer?.character_id === character.id ? 'selected' : ''}`}
-                  onClick={() => handleCharacterSelect(character.id)}
-                  disabled={isLoading}
-                >
-                  <div className="character-emoji">{character.emoji}</div>
-                  <div className="character-name">{character.name}</div>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Ready Status */}
-          <div className="ready-section">
-            <button
-              className={`ready-button ${isReady ? 'ready' : 'not-ready'}`}
-              onClick={handleToggleReady}
-              disabled={isLoading}
-            >
-              {isReady ? '✅ Gata să încep!' : '⏳ Nu sunt gata'}
-            </button>
+          {/* Controls */}
+          <div className="controls-section">
+            <h3>🎮 Controale</h3>
             
-            {session.players.length >= 2 && allPlayersReady && (
-              <button
-                className="start-game-button"
-                onClick={handleStartGame}
+            {/* Character Selection */}
+            <div className="character-selection">
+              <h4>Alege Caracterul:</h4>
+              <div className="character-grid">
+                {CHARACTERS.map((character) => (
+                  <div
+                    key={character.id}
+                    className={`character-option ${selectedCharacter === character.id ? 'selected' : ''}`}
+                    onClick={() => handleCharacterSelect(character.id)}
+                  >
+                    <span className="character-emoji">{character.emoji}</span>
+                    <div>{character.name}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Ready Controls */}
+            <div className="ready-controls">
+              <button 
+                className={`ready-button ${isReady ? 'ready' : 'not-ready'}`}
+                onClick={handleToggleReady}
                 disabled={isLoading}
               >
-                🎮 Începe Jocul
+                {isReady ? '✅ Gata de joc!' : '🚀 Marchează ca gata'}
               </button>
-            )}
-          </div>
+              
+              {allPlayersReady && session.players.length >= 2 && (
+                <button 
+                  className="start-game-button"
+                  onClick={handleStartGame}
+                  disabled={!canStartGame || isLoading}
+                >
+                  🎯 Începe Jocul
+                </button>
+              )}
+              
+              {!allPlayersReady && (
+                <div className="start-game-hint">
+                  {session.players.length < 2 
+                    ? 'Se așteaptă mai mulți jucători...' 
+                    : 'Se așteaptă ca toți jucătorii să fie gata...'
+                  }
+                </div>
+              )}
+            </div>
 
-          {/* Game Info */}
-          <div className="game-info">
-            <h4>Informații Sesiune</h4>
-            <ul>
-              <li>Jucători necesari: Minim 2</li>
-              <li>Status: {session.status === 'waiting' ? 'Se așteaptă jucători' : session.status}</li>
-              <li>Nivel: {session.level}</li>
-              <li>Vieți: {session.lives}</li>
-              <li>Shuriken: {session.shurikens}</li>
-            </ul>
+            {/* Game Info */}
+            <div className="game-info">
+              <h4>📊 Informații Sesiune</h4>
+              <ul>
+                <li>Status: <strong>{session.status === 'waiting' ? 'Se așteaptă jucători' : session.status}</strong></li>
+                <li>Nivel: <strong>{session.level}</strong></li>
+                <li>Vieți: <strong>{session.lives}</strong></li>
+                <li>Shuriken: <strong>{session.shurikens}</strong></li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>

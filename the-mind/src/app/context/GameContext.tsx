@@ -116,7 +116,12 @@ interface GameContextType extends GameContextState {
   startGame: () => Promise<void>;
   startLevel: () => Promise<void>;
   playCard: (card: number) => Promise<void>;
-  useShuriken: () => Promise<void>;
+  
+  // Shuriken voting
+  initiateShurikenVote: () => Promise<void>;
+  castShurikenVote: (vote: boolean) => Promise<void>;
+  useShuriken: () => Promise<void>; // Legacy method
+  
   replayGame: () => Promise<void>;
   chooseCharacter: (sessionId: string, playerId: string, characterId: string) => Promise<void>;
   refreshGameState: () => Promise<void>;
@@ -307,6 +312,32 @@ export function GameProvider({ children }: GameProviderProps) {
     }
   };
 
+  // New shuriken voting methods
+  const initiateShurikenVote = async () => {
+    if (!state.sessionId || !state.playerId) return;
+
+    try {
+      await apiService.initiateShurikenVote(state.sessionId, state.playerId);
+      // Refresh game state to show voting UI
+      await refreshGameState();
+    } catch (error) {
+      handleError(error);
+    }
+  };
+
+  const castShurikenVote = async (vote: boolean) => {
+    if (!state.sessionId || !state.playerId) return;
+
+    try {
+      await apiService.castShurikenVote(state.sessionId, state.playerId, vote);
+      // Refresh game state
+      await refreshGameState();
+    } catch (error) {
+      handleError(error);
+    }
+  };
+
+  // Legacy shuriken method (now shows error)
   const useShuriken = async () => {
     if (!state.sessionId || !state.playerId) return;
 
@@ -357,7 +388,7 @@ export function GameProvider({ children }: GameProviderProps) {
           console.error('Polling error:', error);
         }
       }
-    }, 2000); // Poll every 2 seconds
+    }, 1000); // Poll every 1 second for responsive voting
   };
 
   const stopPolling = () => {
@@ -391,6 +422,8 @@ export function GameProvider({ children }: GameProviderProps) {
     startGame,
     startLevel,
     playCard,
+    initiateShurikenVote,
+    castShurikenVote,
     useShuriken,
     replayGame,
     chooseCharacter,

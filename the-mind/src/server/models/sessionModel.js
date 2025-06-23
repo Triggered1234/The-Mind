@@ -1,3 +1,4 @@
+// models/sessionModel.js
 import mongoose from 'mongoose';
 
 const PlayerSchema = new mongoose.Schema({
@@ -5,7 +6,8 @@ const PlayerSchema = new mongoose.Schema({
     nickname: { type: String, required: true },
     hand: { type: [Number], default: [] }, // Array of card numbers (1-100)
     character_id: { type: String, default: null },
-    is_ready: { type: Boolean, default: false }
+    is_ready: { type: Boolean, default: false },
+    shuriken_vote: { type: Boolean, default: false } // Vote for using shuriken
 });
 
 const SessionSchema = new mongoose.Schema({
@@ -31,6 +33,12 @@ const SessionSchema = new mongoose.Schema({
     },
     deck: { type: [Number], default: [] }, // Remaining cards in deck
     current_turn_start: { type: Date },
+    shuriken_voting: {
+        active: { type: Boolean, default: false },
+        initiated_by: { type: String, default: null },
+        votes: { type: [String], default: [] }, // Array of player_ids who voted yes
+        timestamp: { type: Date, default: null }
+    },
     game_settings: {
         max_levels: { type: Number, default: 12 }, // Standard Mind game has 12 levels
         cards_per_level: { type: Boolean, default: true }, // Level 1 = 1 card, Level 2 = 2 cards, etc.
@@ -61,17 +69,25 @@ SessionSchema.methods.dealCards = function() {
         }
         // Sort each player's hand
         player.hand.sort((a, b) => a - b);
+        // Reset shuriken votes
+        player.shuriken_vote = false;
     });
 
     // Store remaining deck
     this.deck = fullDeck.slice(totalCardsNeeded);
     
-    // Reset cards played for new level
+    // Reset cards played and voting for new level
     this.cards_played = [];
     this.current_turn_start = new Date();
+    this.shuriken_voting = {
+        active: false,
+        initiated_by: null,
+        votes: [],
+        timestamp: null
+    };
 };
 
-// Method to check if card play is valid
+// Method to check if card play is valid (any card higher than last played card)
 SessionSchema.methods.isValidCardPlay = function(card) {
     if (this.cards_played.length === 0) {
         return true; // First card can be anything
@@ -100,26 +116,200 @@ SessionSchema.methods.getNextExpectedCard = function() {
 
 // Method to check if game is over
 SessionSchema.methods.isGameOver = function() {
-    return this.lives <= 0 || this.level > this.game_settings.max_levels;
+    return this.lives <= 0;
 };
 
-// Method to use shuriken (remove lowest card from all hands)
-SessionSchema.methods.useShuriken = function() {
-    if (this.shurikens <= 0) return false;
+// Method to automatically discard all cards lower than the played card
+SessionSchema.methods.discardCardsLowerThan = function(playedCard) {
+    const discardedCards = [];
     
-    const nextCard = this.getNextExpectedCard();
-    if (!nextCard) return false;
-
-    // Remove the lowest card from the player who has it
     this.players.forEach(player => {
-        const cardIndex = player.hand.indexOf(nextCard);
-        if (cardIndex !== -1) {
-            player.hand.splice(cardIndex, 1);
+        // Find all cards in hand that are lower than the played card
+        const cardsToDiscard = player.hand.filter(card => card < playedCard);
+        
+        // Remove these cards from the player's hand
+        player.hand = player.hand.filter(card => card >= playedCard);
+        
+        // Add to discarded list with player info
+        cardsToDiscard.forEach(card => {
+            discardedCards.push({
+                card: card,
+                player_id: player.player_id,
+                player_nickname: player.nickname
+            });
+        });
+    });
+    
+    return discardedCards;
+};
+
+// Method to initiate shuriken voting
+SessionSchema.methods.initiateShurikenVote = function(playerId) {
+    if (this.shurikens <= 0) {
+        return { success: false, message: 'No shurikens available' };
+    }
+    
+    if (this.shuriken_voting.active) {
+        return { success: false, message: 'Shuriken vote already in progress' };
+    }
+    
+    // Start the voting process
+    this.shuriken_voting = {
+        active: true,
+        initiated_by: playerId,
+        votes: [playerId], // Initiator automatically votes yes
+        timestamp: new Date()
+    };
+    
+    return { success: true, message: 'Shuriken vote initiated' };
+};
+
+// Method to cast a shuriken vote
+SessionSchema.methods.castShurikenVote = function(playerId, voteYes) {
+    if (!this.shuriken_voting.active) {
+        return { success: false, message: 'No active shuriken vote' };
+    }
+    
+    const player = this.players.find(p => p.player_id === playerId);
+    if (!player) {
+        return { success: false, message: 'Player not found' };
+    }
+    
+    // Remove any existing vote from this player
+    this.shuriken_voting.votes = this.shuriken_voting.votes.filter(id => id !== playerId);
+    
+    // Add vote if yes
+    if (voteYes) {
+        this.shuriken_voting.votes.push(playerId);
+    }
+    
+    return { success: true, votes: this.shuriken_voting.votes.length };
+};
+
+// Method to check if all players have voted yes for shuriken
+SessionSchema.methods.checkShurikenVoteResult = function() {
+    if (!this.shuriken_voting.active) {
+        return { complete: false };
+    }
+    
+    const totalPlayers = this.players.length;
+    const yesVotes = this.shuriken_voting.votes.length;
+    
+    // Check if all players voted yes
+    if (yesVotes === totalPlayers) {
+        return { complete: true, passed: true };
+    }
+    
+    // Check if enough players voted no (impossible to pass)
+    const playersWhoVoted = this.shuriken_voting.votes.length;
+    const maxPossibleYes = playersWhoVoted + (totalPlayers - playersWhoVoted);
+    
+    if (maxPossibleYes < totalPlayers) {
+        return { complete: true, passed: false };
+    }
+    
+    return { complete: false };
+};
+
+// Method to execute shuriken (remove lowest card from each player and discard lower cards)
+SessionSchema.methods.executeShurikenVote = function() {
+    if (!this.shuriken_voting.active) {
+        return { success: false, message: 'No active shuriken vote' };
+    }
+    
+    if (this.shurikens <= 0) {
+        return { success: false, message: 'No shurikens available' };
+    }
+    
+    const removedCards = [];
+    const discardedCards = [];
+    
+    // Step 1: Remove the lowest card from each player's hand
+    this.players.forEach(player => {
+        if (player.hand.length > 0) {
+            const lowestCard = Math.min(...player.hand);
+            const cardIndex = player.hand.indexOf(lowestCard);
+            
+            if (cardIndex !== -1) {
+                player.hand.splice(cardIndex, 1);
+                removedCards.push({
+                    card: lowestCard,
+                    player_id: player.player_id,
+                    player_nickname: player.nickname
+                });
+            }
         }
     });
-
+    
+    // Step 2: Find the highest of the removed cards
+    const highestRemovedCard = removedCards.length > 0 ? 
+        Math.max(...removedCards.map(r => r.card)) : 0;
+    
+    // Step 3: Discard all cards lower than the highest removed card from all players
+    this.players.forEach(player => {
+        const cardsToDiscard = player.hand.filter(card => card < highestRemovedCard);
+        player.hand = player.hand.filter(card => card >= highestRemovedCard);
+        
+        cardsToDiscard.forEach(card => {
+            discardedCards.push({
+                card: card,
+                player_id: player.player_id,
+                player_nickname: player.nickname
+            });
+        });
+    });
+    
+    // Use up one shuriken
     this.shurikens--;
-    return true;
+    
+    // Reset voting
+    this.shuriken_voting = {
+        active: false,
+        initiated_by: null,
+        votes: [],
+        timestamp: null
+    };
+    
+    return {
+        success: true,
+        removed_cards: removedCards,
+        discarded_cards: discardedCards,
+        highest_removed_card: highestRemovedCard
+    };
+};
+
+// Method to cancel shuriken vote
+SessionSchema.methods.cancelShurikenVote = function() {
+    this.shuriken_voting = {
+        active: false,
+        initiated_by: null,
+        votes: [],
+        timestamp: null
+    };
+};
+
+// Method to reset game state for replay
+SessionSchema.methods.resetForReplay = function() {
+    this.status = 'waiting';
+    this.level = 1;
+    this.lives = 3;
+    this.shurikens = 1;
+    this.cards_played = [];
+    this.deck = [];
+    this.current_turn_start = null;
+    this.shuriken_voting = {
+        active: false,
+        initiated_by: null,
+        votes: [],
+        timestamp: null
+    };
+    
+    // Reset all players
+    this.players.forEach(player => {
+        player.hand = [];
+        player.is_ready = false;
+        player.shuriken_vote = false;
+    });
 };
 
 const Session = mongoose.model('Session', SessionSchema);

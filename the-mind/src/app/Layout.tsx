@@ -1,4 +1,4 @@
-// app/layout.tsx
+// src/app/layout.tsx (correct filename with lowercase 'l')
 import { ReactNode } from 'react';
 import './globals.css';
 

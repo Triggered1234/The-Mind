@@ -3,6 +3,40 @@
 export const createSessionController = (deps) => {
   const { Session, uuidv4 } = deps;
 
+  // Generate a short, user-friendly session code
+  const generateSessionCode = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = '';
+    for (let i = 0; i < 6; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  };
+
+  // Check if session code already exists
+  const isSessionCodeUnique = async (code) => {
+    const existingSession = await Session.findOne({ session_id: code });
+    return !existingSession;
+  };
+
+  // Generate a unique session code
+  const generateUniqueSessionCode = async () => {
+    let code;
+    let attempts = 0;
+    const maxAttempts = 10;
+
+    do {
+      code = generateSessionCode();
+      attempts++;
+    } while (!(await isSessionCodeUnique(code)) && attempts < maxAttempts);
+
+    if (attempts >= maxAttempts) {
+      throw new Error('Unable to generate unique session code');
+    }
+
+    return code;
+  };
+
   return {
     createSession: async (req, res) => {
       try {
@@ -12,8 +46,11 @@ export const createSessionController = (deps) => {
           return res.status(400).json({ error: 'player_id and nickname are required' });
         }
 
+        // Generate a short, unique session code instead of UUID
+        const sessionCode = await generateUniqueSessionCode();
+
         const session = new Session({
-          session_id: uuidv4(),
+          session_id: sessionCode, // Use short code instead of UUID
           max_players: parseInt(max_players),
           players: [{
             player_id,
@@ -90,42 +127,67 @@ export const createSessionController = (deps) => {
           return res.status(404).json({ error: 'Session not found' });
         }
 
-        if (session.status !== 'waiting') {
-          return res.status(400).json({ error: 'Session has already started' });
-        }
-
+        // Check if session is full
         if (session.players.length >= session.max_players) {
           return res.status(400).json({ error: 'Session is full' });
         }
 
-        // Check if player already in session
+        // Check if player is already in session
         const existingPlayer = session.players.find(p => p.player_id === player_id);
         if (existingPlayer) {
-          return res.status(400).json({ error: 'Player already in session' });
+          return res.status(200).json({
+            session_id: sessionId,
+            player_id: player_id,
+            nickname: nickname,
+            message: 'Player already in session'
+          });
         }
 
+        // Add player to session
         session.players.push({
           player_id,
           nickname,
           hand: [],
           is_ready: false
         });
-        
+
         await session.save();
 
         res.status(200).json({
           session_id: sessionId,
-          player_id,
-          nickname,
-          players: session.players.map(p => ({
-            player_id: p.player_id,
-            nickname: p.nickname,
-            is_ready: p.is_ready
-          }))
+          player_id: player_id,
+          nickname: nickname
         });
       } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Error joining session' });
+      }
+    },
+
+    leaveSession: async (req, res) => {
+      try {
+        const { sessionId } = req.params;
+        const { player_id } = req.body;
+
+        const session = await Session.findOne({ session_id: sessionId });
+        if (!session) {
+          return res.status(404).json({ error: 'Session not found' });
+        }
+
+        // Remove player from session
+        session.players = session.players.filter(p => p.player_id !== player_id);
+
+        if (session.players.length === 0) {
+          // Delete session if no players left
+          await Session.deleteOne({ session_id: sessionId });
+        } else {
+          await session.save();
+        }
+
+        res.status(200).json({ message: 'Left session successfully' });
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error leaving session' });
       }
     },
 
@@ -138,15 +200,15 @@ export const createSessionController = (deps) => {
           return res.status(404).json({ error: 'Session not found' });
         }
 
-        res.status(200).json({
-          players: session.players.map(p => ({
-            player_id: p.player_id,
-            nickname: p.nickname,
-            character_id: p.character_id,
-            is_ready: p.is_ready,
-            cards_remaining: p.hand ? p.hand.length : 0
-          }))
-        });
+        const players = session.players.map(p => ({
+          player_id: p.player_id,
+          nickname: p.nickname,
+          character_id: p.character_id,
+          is_ready: p.is_ready,
+          cards_remaining: p.hand ? p.hand.length : 0
+        }));
+
+        res.status(200).json({ players });
       } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Error retrieving players' });
@@ -171,12 +233,7 @@ export const createSessionController = (deps) => {
         player.character_id = character_id;
         await session.save();
 
-        res.status(200).json({
-          session_id: sessionId,
-          player_id,
-          character_id,
-          status: 'Character chosen'
-        });
+        res.status(200).json({ message: 'Character chosen successfully' });
       } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Error choosing character' });
@@ -202,10 +259,8 @@ export const createSessionController = (deps) => {
         await session.save();
 
         res.status(200).json({
-          session_id: sessionId,
-          player_id,
-          is_ready: player.is_ready,
-          all_ready: session.players.every(p => p.is_ready)
+          player_id: player_id,
+          is_ready: player.is_ready
         });
       } catch (error) {
         console.error(error);
@@ -222,32 +277,23 @@ export const createSessionController = (deps) => {
           return res.status(404).json({ error: 'Session not found' });
         }
 
-        if (session.status !== 'waiting') {
-          return res.status(400).json({ error: 'Game has already started' });
-        }
-
-        if (session.players.length < 2) {
-          return res.status(400).json({ error: 'Need at least 2 players to start' });
-        }
-
         // Check if all players are ready
         const allReady = session.players.every(p => p.is_ready);
         if (!allReady) {
           return res.status(400).json({ error: 'All players must be ready to start' });
         }
 
+        // Check minimum player count
+        if (session.players.length < 2) {
+          return res.status(400).json({ error: 'Need at least 2 players to start' });
+        }
+
         session.status = 'started';
-        session.level = 1;
-        session.lives = 3;
-        session.shurikens = 1;
-        
         await session.save();
 
-        res.status(200).json({
+        res.status(200).json({ 
           status: 'Game started',
-          level: session.level,
-          lives: session.lives,
-          shurikens: session.shurikens
+          session_id: sessionId
         });
       } catch (error) {
         console.error(error);
@@ -264,67 +310,18 @@ export const createSessionController = (deps) => {
           return res.status(404).json({ error: 'Session not found' });
         }
 
-        // Reset game state
-        session.level = 1;
-        session.lives = 3;
-        session.shurikens = 1;
-        session.status = 'waiting';
-        session.cards_played = [];
-        session.deck = [];
-        
-        // Clear all player hands and reset ready states
-        session.players.forEach(player => {
-          player.hand = [];
-          player.is_ready = false;
-        });
-
+        // Reset game state using the new method
+        session.resetForReplay();
         await session.save();
 
-        res.status(200).json({
-          status: 'Game restarted',
-          level: session.level,
-          lives: session.lives,
-          shurikens: session.shurikens
+        res.status(200).json({ 
+          status: 'Game reset - returning to lobby',
+          session_id: sessionId,
+          message: 'Players can now choose characters and get ready again'
         });
       } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Error restarting game' });
-      }
-    },
-
-    leaveSession: async (req, res) => {
-      try {
-        const { sessionId } = req.params;
-        const { player_id } = req.body;
-
-        const session = await Session.findOne({ session_id: sessionId });
-        if (!session) {
-          return res.status(404).json({ error: 'Session not found' });
-        }
-
-        const playerIndex = session.players.findIndex(p => p.player_id === player_id);
-        if (playerIndex === -1) {
-          return res.status(404).json({ error: 'Player not found in session' });
-        }
-
-        session.players.splice(playerIndex, 1);
-        
-        // If no players left, you might want to delete the session
-        if (session.players.length === 0) {
-          await Session.deleteOne({ session_id: sessionId });
-          return res.status(200).json({ status: 'Session deleted - no players remaining' });
-        }
-
-        await session.save();
-
-        res.status(200).json({
-          status: 'Player left session',
-          player_id,
-          remaining_players: session.players.length
-        });
-      } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Error leaving session' });
+        res.status(500).json({ error: 'Error replaying game' });
       }
     }
   };

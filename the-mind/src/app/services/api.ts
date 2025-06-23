@@ -7,6 +7,7 @@ export interface Player {
   character_id?: string;
   is_ready?: boolean;
   cards_remaining?: number;
+  shuriken_vote?: boolean;
 }
 
 export interface GameState {
@@ -20,11 +21,18 @@ export interface GameState {
     card: number;
     player_id: string;
     timestamp: string;
+    incorrect?: boolean;
   }>;
   players: Player[];
   next_expected_card?: number;
   is_level_complete: boolean;
   is_game_over: boolean;
+  shuriken_voting?: {
+    active: boolean;
+    initiated_by?: string;
+    votes: string[];
+    votes_needed: number;
+  };
 }
 
 export interface Session {
@@ -36,6 +44,11 @@ export interface Session {
   shurikens: number;
   players: Player[];
   cards_played_count: number;
+  shuriken_voting?: {
+    active: boolean;
+    initiated_by?: string;
+    votes: string[];
+  };
 }
 
 class ApiService {
@@ -133,6 +146,22 @@ class ApiService {
     });
   }
 
+  // Shuriken Voting System
+  async initiateShurikenVote(sessionId: string, playerId: string): Promise<any> {
+    return this.request(`/api/sessions/${sessionId}/shuriken/initiate`, {
+      method: 'POST',
+      body: JSON.stringify({ player_id: playerId }),
+    });
+  }
+
+  async castShurikenVote(sessionId: string, playerId: string, vote: boolean): Promise<any> {
+    return this.request(`/api/sessions/${sessionId}/shuriken/vote`, {
+      method: 'POST',
+      body: JSON.stringify({ player_id: playerId, vote }),
+    });
+  }
+
+  // Legacy shuriken method (now returns error)
   async useShuriken(sessionId: string, playerId: string): Promise<any> {
     return this.request(`/api/sessions/${sessionId}/shuriken`, {
       method: 'POST',
@@ -167,6 +196,11 @@ class ApiService {
 
   async getUserProfile(userId: string): Promise<any> {
     return this.request(`/auth/users/${userId}`);
+  }
+
+  // Debug/Helper Methods
+  async getPlayerHand(sessionId: string, playerId: string): Promise<any> {
+    return this.request(`/api/sessions/${sessionId}/players/${playerId}/hand`);
   }
 }
 
