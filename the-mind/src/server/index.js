@@ -4,10 +4,12 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import dotenv from 'dotenv';
 
-import authRoutes from './routes/authRoutes.js';
-import sessionRoutes from './routes/sessionRoutes.js';
+import authRoutes from './routes/authRoute.js';
+import deps from './dependencies.js';
+import { createController } from './controllers/sessionController.js';
+import { createSessionRouter } from './routes/sessionRoute.js';
 
-dotenv.config();
+dotenv.config({ path: './db.env' });
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -18,9 +20,10 @@ app.use(bodyParser.json());
 
 // Routes
 app.use('/auth', authRoutes);
-app.use('/session', sessionRoutes);
+const controller = createController(deps);
+const sessionRouter = createSessionRouter(controller);
+app.use('/api/sessions', sessionRouter);
 
-// Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true

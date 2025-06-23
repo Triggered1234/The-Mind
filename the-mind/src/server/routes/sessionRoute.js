@@ -1,24 +1,17 @@
+// routes/sessionRoutes.js
 import express from 'express';
-import {
-  createSession,
-  joinSession,
-  requestShuriken,
-  moveToNextLevel,
-  playCard,
-  chooseCharacter,
-  startGame,
-  replayGame
-} from '../controllers/sessionController.js';
 
-const router = express.Router();
+export const createSessionRouter = (controller) => {
+  const router = express.Router();
 
-router.post('/', createSession);
-router.post('/:sessionId/players', joinSession);
-router.post('/:sessionId/shuriken-requests', requestShuriken);
-router.patch('/:sessionId/level', moveToNextLevel);
-router.post('/:sessionId/cards', playCard);
-router.post('/:sessionId/characters', chooseCharacter);
-router.post('/:sessionId/start', startGame);
-router.post('/:sessionId/replay', replayGame);
+  router.post('/', controller.createSession);
+  router.post('/:sessionId/players', controller.joinSession);
+  router.post('/:sessionId/shuriken-requests', controller.requestShuriken);
+  router.patch('/:sessionId/level', controller.moveToNextLevel);
+  router.post('/:sessionId/cards', controller.playCard);
+  router.post('/:sessionId/characters', controller.chooseCharacter);
+  router.post('/:sessionId/start', controller.startGame);
+  router.post('/:sessionId/replay', controller.replayGame);
 
-export default router;
+  return router;
+};

@@ -11,7 +11,7 @@ function Home({}: Props) {
     <div className="home">
       {/* Logo */}
       <div className="logo-the-mind"></div>
-
+      <div className="ellipse-5"></div>
       {/* Buttons in a circular layout */}
       <div className="buttons-container">
         <div className="play" onClick={() => navigate("/play")}>JOACĂ</div>

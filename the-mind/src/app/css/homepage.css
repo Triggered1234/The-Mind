@@ -26,10 +26,23 @@ body {
   align-items: center;
 }
 
+/* Ellipse 5 */
+.ellipse-5 
+{
+position: absolute;
+width: 2000px;
+height: 814.95px;
+left: -270px;
+top: 358.73px;
+border-radius: 50%;
+background: linear-gradient(178.43deg, #152842 16.96%, #824728 33.88%, #C2730A 45.77%, #824728 59.14%, #3B1800 71.36%);
+box-shadow: inset 0px 4px 4px rgba(0, 0, 0, 0.25);
+}
+
 /* Logo */
 .logo-the-mind {
   position: absolute;
-  width: 50%; /* Adjust size for better visibility */
+  width: 50%;
   height:50%;
   background: url('/assets/themindlogo.png') no-repeat center center;
   background-size: contain;
