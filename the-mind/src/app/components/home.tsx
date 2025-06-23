@@ -1,27 +1,352 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import '../css/homepage.css';
+// src/app/components/Home.tsx
+'use client';
 
-type Props = {};
+import React, { useEffect, useState } from 'react';
 
-function Home({}: Props) {
-  const navigate = useNavigate();
+type CurrentPage = 'home' | 'auth' | 'setup' | 'create' | 'join' | 'lobby' | 'game' | 'rules' | 'settings';
+
+interface HomeProps {
+  navigate: (page: CurrentPage) => void;
+}
+
+const Home: React.FC<HomeProps> = ({ navigate }) => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    // Check if user is already authenticated
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('themind_user_token');
+      setIsAuthenticated(!!token);
+    }
+  }, []);
+
+  const handlePlayClick = () => {
+    if (isAuthenticated) {
+      navigate('setup');
+    } else {
+      navigate('auth');
+    }
+  };
+
+  const handleOnlineClick = () => {
+    if (isAuthenticated) {
+      navigate('setup');
+    } else {
+      navigate('auth');
+    }
+  };
 
   return (
-    <div className="home">
-      {/* Logo */}
-      <div className="logo-the-mind"></div>
-      <div className="ellipse-5"></div>
-      {/* Buttons in a circular layout */}
-      <div className="buttons-container">
-        <div className="play" onClick={() => navigate("/play")}>JOACĂ</div>
-        <div className="online" onClick={() => navigate("/online")}>ONLINE</div>
-        <div className="rules" onClick={() => navigate("/rules")}>REGULI</div>
-        <div className="settings" onClick={() => navigate("/settings")}>SETĂRI</div>
-        <div className="achievements" onClick={() => navigate("/achievements")}>REALIZĂRI</div>
+    <>
+      <div className="home">
+        {/* Background ellipse */}
+        <div className="ellipse-5"></div>
+        
+        {/* Logo */}
+        <div className="logo-the-mind">
+          <h1 className="game-title">THE MIND</h1>
+          <p className="game-subtitle">Joc de Cărți Cooperativ</p>
+          {isAuthenticated && (
+            <p className="user-status">✅ Autentificat</p>
+          )}
+        </div>
+        
+        {/* Buttons in a circular layout */}
+        <div className="buttons-container">
+          <button className="menu-button play" onClick={handlePlayClick}>
+            🎮 JOACĂ
+          </button>
+          <button className="menu-button online" onClick={handleOnlineClick}>
+            🌐 ONLINE
+          </button>
+          <button className="menu-button rules" onClick={() => navigate('rules')}>
+            📖 REGULI
+          </button>
+          <button className="menu-button settings" onClick={() => navigate('settings')}>
+            ⚙️ SETĂRI
+          </button>
+          <button className="menu-button auth" onClick={() => navigate('auth')}>
+            {isAuthenticated ? '👤 PROFIL' : '🔐 CONT'}
+          </button>
+        </div>
+
+        {/* Quick info */}
+        <div className="info-panel">
+          <p>
+            {isAuthenticated 
+              ? 'Bine ai revenit! Poți începe să joci.' 
+              : 'Creează un cont pentru a salva progresul sau joacă ca invitat.'
+            }
+          </p>
+        </div>
       </div>
-    </div>
+
+      <style jsx global>{`
+        /* Reset and base styles */
+        * {
+          box-sizing: border-box;
+          margin: 0;
+          padding: 0;
+        }
+
+        html, body, #__next {
+          margin: 0;
+          padding: 0;
+          width: 100%;
+          height: 100vh;
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .home {
+          position: relative;
+          width: 100vw;
+          height: 100vh;
+          background: linear-gradient(180deg, #00000D 15.17%, #0E182F 40.5%, #1C304E 54.27%, #07182B 73.38%, #22120D 93.08%);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          overflow: hidden;
+        }
+
+        /* Ellipse background */
+        .ellipse-5 {
+          position: absolute;
+          width: 2000px;
+          height: 815px;
+          left: -270px;
+          top: 359px;
+          border-radius: 50%;
+          background: linear-gradient(178.43deg, #152842 16.96%, #824728 33.88%, #C2730A 45.77%, #824728 59.14%, #3B1800 71.36%);
+          box-shadow: inset 0px 4px 4px rgba(0, 0, 0, 0.25);
+          opacity: 0.8;
+        }
+
+        /* Logo */
+        .logo-the-mind {
+          position: absolute;
+          z-index: 10;
+          text-align: center;
+          background: rgba(255, 255, 255, 0.1);
+          backdrop-filter: blur(10px);
+          border-radius: 20px;
+          padding: 30px 40px;
+          border: 2px solid rgba(194, 115, 10, 0.3);
+        }
+
+        .game-title {
+          font-size: 48px;
+          font-weight: 800;
+          color: #C2730A;
+          text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+          margin-bottom: 10px;
+          letter-spacing: 2px;
+        }
+
+        .game-subtitle {
+          font-size: 16px;
+          color: rgba(255, 255, 255, 0.9);
+          font-weight: 400;
+          margin-bottom: 5px;
+        }
+
+        .user-status {
+          font-size: 12px;
+          color: #4CAF50;
+          font-weight: 600;
+        }
+
+        /* Buttons container */
+        .buttons-container {
+          position: relative;
+          width: 100%;
+          height: 100%;
+          max-width: 900px;
+          max-height: 900px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+
+        /* Menu buttons */
+        .menu-button {
+          position: absolute;
+          width: 180px;
+          height: 120px;
+          background: rgba(255, 255, 255, 0.1);
+          backdrop-filter: blur(10px);
+          border: 2px solid rgba(255, 255, 255, 0.2);
+          border-radius: 20px;
+          font-family: 'Inter', sans-serif;
+          font-weight: 700;
+          font-size: 14px;
+          color: white;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          gap: 8px;
+          text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+        }
+
+        .menu-button:hover {
+          transform: translateY(-5px) scale(1.05);
+          background: rgba(194, 115, 10, 0.2);
+          border-color: #C2730A;
+          box-shadow: 0 10px 25px rgba(194, 115, 10, 0.3);
+        }
+
+        .menu-button:active {
+          transform: translateY(-2px) scale(1.02);
+        }
+
+        /* Circular positioning */
+        .play {
+          top: 15%;
+          left: 25%;
+          transform: translate(-50%, -50%);
+        }
+
+        .online {
+          top: 50%;
+          right: 15%;
+          transform: translate(50%, -50%);
+        }
+
+        .rules {
+          bottom: 15%;
+          left: 50%;
+          transform: translate(-50%, 50%);
+        }
+
+        .settings {
+          top: 50%;
+          left: 15%;
+          transform: translate(-50%, -50%);
+        }
+
+        .auth {
+          top: 15%;
+          right: 25%;
+          transform: translate(50%, -50%);
+        }
+
+        /* Info panel */
+        .info-panel {
+          position: absolute;
+          bottom: 20px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: rgba(255, 255, 255, 0.1);
+          backdrop-filter: blur(10px);
+          border-radius: 15px;
+          padding: 15px 25px;
+          text-align: center;
+          max-width: 400px;
+          z-index: 5;
+        }
+
+        .info-panel p {
+          color: rgba(255, 255, 255, 0.8);
+          font-size: 12px;
+          line-height: 1.4;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+          .game-title {
+            font-size: 36px;
+          }
+
+          .game-subtitle {
+            font-size: 14px;
+          }
+
+          .logo-the-mind {
+            padding: 20px 30px;
+          }
+
+          .menu-button {
+            width: 140px;
+            height: 100px;
+            font-size: 12px;
+          }
+
+          .play {
+            top: 20%;
+            left: 20%;
+          }
+
+          .online {
+            top: 50%;
+            right: 10%;
+          }
+
+          .rules {
+            bottom: 20%;
+            left: 50%;
+          }
+
+          .settings {
+            top: 50%;
+            left: 10%;
+          }
+
+          .auth {
+            top: 20%;
+            right: 20%;
+          }
+
+          .info-panel {
+            bottom: 10px;
+            padding: 10px 15px;
+            max-width: 300px;
+          }
+
+          .info-panel p {
+            font-size: 10px;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .game-title {
+            font-size: 28px;
+          }
+
+          .game-subtitle {
+            font-size: 12px;
+          }
+
+          .logo-the-mind {
+            padding: 15px 20px;
+          }
+
+          .menu-button {
+            width: 120px;
+            height: 80px;
+            font-size: 10px;
+          }
+
+          .buttons-container {
+            max-width: 100%;
+            max-height: 100%;
+          }
+        }
+
+        /* Loading states and animations */
+        @keyframes pulse {
+          0% { opacity: 1; }
+          50% { opacity: 0.7; }
+          100% { opacity: 1; }
+        }
+
+        .logo-the-mind {
+          animation: pulse 3s ease-in-out infinite;
+        }
+      `}</style>
+    </>
   );
-}
+};
 
 export default Home;

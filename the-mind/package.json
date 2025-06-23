@@ -6,7 +6,9 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "server": "cd src/server && npm start",
+    "server:dev": "cd src/server && npm run dev"
   },
   "dependencies": {
     "next": "15.2.4",
