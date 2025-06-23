@@ -1,7 +1,7 @@
 // src/app/context/GameContext.tsx
 'use client';
 
-import React, { createContext, useContext, useReducer, useEffect, useState } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useState, useRef } from 'react';
 import { GameState, Session, Player, apiService } from '../services/api';
 
 interface GameContextState {
@@ -108,9 +108,9 @@ function gameReducer(state: GameContextState, action: GameAction): GameContextSt
 
 interface GameContextType extends GameContextState {
   // Actions
-  setPlayer: (playerId: string, nickname: string) => void;
-  createSession: (maxPlayers?: number) => Promise<void>;
-  joinSession: (sessionId: string) => Promise<void>;
+  setPlayer: (nickname: string) => void;
+  createSession: (maxPlayers?: number) => Promise<string | null>;
+  joinSession: (sessionId: string) => Promise<string | null>;
   leaveSession: () => Promise<void>;
   toggleReady: () => Promise<void>;
   startGame: () => Promise<void>;
@@ -118,6 +118,7 @@ interface GameContextType extends GameContextState {
   playCard: (card: number) => Promise<void>;
   useShuriken: () => Promise<void>;
   replayGame: () => Promise<void>;
+  chooseCharacter: (sessionId: string, playerId: string, characterId: string) => Promise<void>;
   refreshGameState: () => Promise<void>;
   startPolling: () => void;
   stopPolling: () => void;
@@ -141,8 +142,7 @@ interface GameProviderProps {
 export function GameProvider({ children }: GameProviderProps) {
   const [state, dispatch] = useReducer(gameReducer, initialState);
   const [isClient, setIsClient] = useState(false);
-  
-  let pollingInterval: NodeJS.Timeout | null = null;
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Set client-side flag
   useEffect(() => {
@@ -187,31 +187,39 @@ export function GameProvider({ children }: GameProviderProps) {
     console.error('Game error:', error);
   };
 
-  const setPlayer = (playerId: string, nickname: string) => {
+  // Generate a unique player ID
+  const generatePlayerId = (): string => {
+    return 'player_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+  };
+
+  const setPlayer = (nickname: string) => {
+    const playerId = generatePlayerId();
     dispatch({ type: 'SET_PLAYER', payload: { playerId, nickname } });
   };
 
-  const createSession = async (maxPlayers = 4) => {
+  const createSession = async (maxPlayers = 4): Promise<string | null> => {
     if (!state.playerId || !state.nickname) {
       handleError(new Error('Player ID and nickname are required'));
-      return;
+      return null;
     }
 
     dispatch({ type: 'SET_LOADING', payload: true });
     try {
       const session = await apiService.createSession(state.playerId, state.nickname, maxPlayers);
       dispatch({ type: 'SET_SESSION', payload: session });
+      return session.session_id;
     } catch (error) {
       handleError(error);
+      return null;
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false });
     }
   };
 
-  const joinSession = async (sessionId: string) => {
+  const joinSession = async (sessionId: string): Promise<string | null> => {
     if (!state.playerId || !state.nickname) {
       handleError(new Error('Player ID and nickname are required'));
-      return;
+      return null;
     }
 
     dispatch({ type: 'SET_LOADING', payload: true });
@@ -219,8 +227,10 @@ export function GameProvider({ children }: GameProviderProps) {
       await apiService.joinSession(sessionId, state.playerId, state.nickname);
       const session = await apiService.getSession(sessionId);
       dispatch({ type: 'SET_SESSION', payload: session });
+      return sessionId;
     } catch (error) {
       handleError(error);
+      return null;
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false });
     }
@@ -244,6 +254,17 @@ export function GameProvider({ children }: GameProviderProps) {
       await apiService.toggleReady(state.sessionId, state.playerId);
       // Refresh session data
       const session = await apiService.getSession(state.sessionId);
+      dispatch({ type: 'SET_SESSION', payload: session });
+    } catch (error) {
+      handleError(error);
+    }
+  };
+
+  const chooseCharacter = async (sessionId: string, playerId: string, characterId: string) => {
+    try {
+      await apiService.chooseCharacter(sessionId, playerId, characterId);
+      // Refresh session data
+      const session = await apiService.getSession(sessionId);
       dispatch({ type: 'SET_SESSION', payload: session });
     } catch (error) {
       handleError(error);
@@ -325,10 +346,10 @@ export function GameProvider({ children }: GameProviderProps) {
   };
 
   const startPolling = () => {
-    if (pollingInterval) return; // Already polling
+    if (pollingIntervalRef.current) return; // Already polling
 
     dispatch({ type: 'SET_POLLING', payload: true });
-    pollingInterval = setInterval(async () => {
+    pollingIntervalRef.current = setInterval(async () => {
       if (state.sessionId && state.playerId) {
         try {
           await refreshGameState();
@@ -340,9 +361,9 @@ export function GameProvider({ children }: GameProviderProps) {
   };
 
   const stopPolling = () => {
-    if (pollingInterval) {
-      clearInterval(pollingInterval);
-      pollingInterval = null;
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+      pollingIntervalRef.current = null;
     }
     dispatch({ type: 'SET_POLLING', payload: false });
   };
@@ -354,8 +375,8 @@ export function GameProvider({ children }: GameProviderProps) {
   // Cleanup polling on unmount
   useEffect(() => {
     return () => {
-      if (pollingInterval) {
-        clearInterval(pollingInterval);
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
       }
     };
   }, []);
@@ -372,6 +393,7 @@ export function GameProvider({ children }: GameProviderProps) {
     playCard,
     useShuriken,
     replayGame,
+    chooseCharacter,
     refreshGameState,
     startPolling,
     stopPolling,

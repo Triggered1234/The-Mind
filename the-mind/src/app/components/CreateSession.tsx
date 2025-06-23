@@ -1,7 +1,7 @@
 // src/app/components/CreateSession.tsx
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useGame } from '../context/GameContext';
 import './styles/CreateSession.css';
 
@@ -16,9 +16,10 @@ const CreateSession: React.FC<CreateSessionProps> = ({ navigate }) => {
   
   const [maxPlayers, setMaxPlayers] = useState(4);
   const [sessionCode, setSessionCode] = useState('');
+  const [isJoining, setIsJoining] = useState(false);
 
   // Redirect if player not set up
-  React.useEffect(() => {
+  useEffect(() => {
     if (!playerId || !nickname) {
       navigate('setup');
     }
@@ -31,27 +32,52 @@ const CreateSession: React.FC<CreateSessionProps> = ({ navigate }) => {
     }
 
     try {
+      clearError(); // Clear any previous errors
       const sessionId = await createSession(maxPlayers);
       if (sessionId) {
+        console.log('Session created successfully:', sessionId);
         navigate('lobby', sessionId);
+      } else {
+        console.error('Failed to create session - no session ID returned');
       }
     } catch (err) {
-      // Error is handled by context
+      console.error('Error creating session:', err);
     }
   };
 
   const handleJoinSession = async () => {
     if (!sessionCode.trim()) {
+      alert('Te rog introdu codul sesiunii');
       return;
     }
 
+    if (!playerId || !nickname) {
+      navigate('setup');
+      return;
+    }
+
+    setIsJoining(true);
     try {
-      const sessionId = await joinSession(sessionCode.trim());
+      clearError(); // Clear any previous errors
+      const sessionId = await joinSession(sessionCode.trim().toUpperCase());
       if (sessionId) {
+        console.log('Joined session successfully:', sessionId);
         navigate('lobby', sessionId);
+      } else {
+        console.error('Failed to join session - no session ID returned');
       }
     } catch (err) {
-      // Error is handled by context
+      console.error('Error joining session:', err);
+    } finally {
+      setIsJoining(false);
+    }
+  };
+
+  const handleSessionCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.toUpperCase().slice(0, 10); // Limit length and convert to uppercase
+    setSessionCode(value);
+    if (error) {
+      clearError();
     }
   };
 
@@ -61,6 +87,7 @@ const CreateSession: React.FC<CreateSessionProps> = ({ navigate }) => {
         <button 
           className="back-button"
           onClick={() => navigate('setup')}
+          disabled={isLoading || isJoining}
         >
           ← Înapoi
         </button>
@@ -70,7 +97,17 @@ const CreateSession: React.FC<CreateSessionProps> = ({ navigate }) => {
           <p className="player-welcome">
             Bună, <strong>{nickname}</strong>! Alege o opțiune pentru a începe să joci online.
           </p>
+          {playerId && (
+            <p className="player-id">ID Jucător: {playerId.slice(-8)}</p>
+          )}
         </div>
+
+        {error && (
+          <div className="error-message">
+            <span>❌ {error}</span>
+            <button onClick={clearError}>✖</button>
+          </div>
+        )}
 
         <div className="options-container">
           {/* Create New Session */}
@@ -85,6 +122,7 @@ const CreateSession: React.FC<CreateSessionProps> = ({ navigate }) => {
                     key={count}
                     className={`player-count-btn ${maxPlayers === count ? 'active' : ''}`}
                     onClick={() => setMaxPlayers(count)}
+                    disabled={isLoading || isJoining}
                   >
                     {count}
                   </button>
@@ -95,51 +133,48 @@ const CreateSession: React.FC<CreateSessionProps> = ({ navigate }) => {
             <button 
               className="create-button"
               onClick={handleCreateSession}
-              disabled={isLoading}
+              disabled={isLoading || isJoining}
             >
-              {isLoading ? '🔄 Se creează...' : '🎯 Creează Sesiune'}
+              {isLoading ? '⏳ Se creează sesiunea...' : '🎯 Creează Sesiune'}
             </button>
           </div>
 
           {/* Join Existing Session */}
           <div className="option-card">
-            <h2>Alătură-te unei Sesiuni</h2>
+            <h2>Alătură-te la o Sesiune</h2>
             
-            <div className="join-input-group">
+            <div className="session-code-input">
               <label htmlFor="sessionCode">Codul sesiunii:</label>
               <input
                 type="text"
                 id="sessionCode"
                 value={sessionCode}
-                onChange={(e) => {
-                  setSessionCode(e.target.value.toUpperCase());
-                  if (error) clearError();
-                }}
-                placeholder="ABCD12"
+                onChange={handleSessionCodeChange}
+                placeholder="Introdu codul sesiunii"
                 maxLength={10}
-                style={{ textTransform: 'uppercase' }}
+                disabled={isLoading || isJoining}
               />
-              <div className="input-hint">
-                Introdu codul primit de la gazda sesiunii
-              </div>
             </div>
 
             <button 
               className="join-button"
               onClick={handleJoinSession}
-              disabled={!sessionCode.trim() || isLoading}
+              disabled={!sessionCode.trim() || isLoading || isJoining}
             >
-              {isLoading ? '🔄 Se alătură...' : '🚀 Alătură-te'}
+              {isJoining ? '⏳ Se alătură...' : '🚀 Alătură-te'}
             </button>
           </div>
         </div>
 
-        {error && (
-          <div className="error-message">
-            {error}
-            <button onClick={clearError}>✕</button>
-          </div>
-        )}
+        <div className="info-section">
+          <h3>ℹ️ Informații</h3>
+          <ul>
+            <li>Sesiunile sunt valabile pentru 24 de ore</li>
+            <li>Poți juca cu 2-4 jucători</li>
+            <li>Codul sesiunii este generat automat</li>
+            <li>Partajează codul cu prietenii pentru a se alătura</li>
+          </ul>
+        </div>
       </div>
     </div>
   );
