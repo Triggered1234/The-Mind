@@ -30,10 +30,7 @@ const Home: React.FC<HomeProps> = ({ navigate }) => {
   };
 
   return (
-    <div className="home">
-      {/* Background ellipse */}
-      <div className="ellipse-5"></div>
-      
+    <div className="home">      
       {/* Logo */}
       <div className="logo-the-mind">
         <h1 className="game-title">THE MIND</h1>
