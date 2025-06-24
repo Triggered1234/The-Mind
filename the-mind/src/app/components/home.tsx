@@ -29,14 +29,6 @@ const Home: React.FC<HomeProps> = ({ navigate }) => {
     }
   };
 
-  const handleOnlineClick = () => {
-    if (isAuthenticated) {
-      navigate('setup');
-    } else {
-      navigate('auth');
-    }
-  };
-
   return (
     <div className="home">
       {/* Background ellipse */}
@@ -55,9 +47,6 @@ const Home: React.FC<HomeProps> = ({ navigate }) => {
       <div className="buttons-container">
         <button className="menu-button play" onClick={handlePlayClick}>
           🎮 JOACĂ
-        </button>
-        <button className="menu-button online" onClick={handleOnlineClick}>
-          🌐 ONLINE
         </button>
         <button className="menu-button rules" onClick={() => navigate('rules')}>
           📖 REGULI

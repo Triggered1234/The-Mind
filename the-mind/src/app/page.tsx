@@ -10,6 +10,8 @@ import AuthPage from './components/AuthPage';
 import JoinSession from './components/JoinSession';
 import Lobby from './components/Lobby';
 import GameBoard from './components/GameBoard';
+import Rules from './components/Rules';
+import Settings from './components/Settings';
 
 type CurrentPage = 'home' | 'auth' | 'setup' | 'create' | 'join' | 'lobby' | 'game' | 'rules' | 'settings';
 
@@ -40,9 +42,9 @@ export default function Page() {
       case 'game':
         return <GameBoard sessionId={sessionId} navigate={navigate} />;
       case 'rules':
-        return <RulesPage navigate={navigate} />;
+        return <Rules navigate={navigate} />;
       case 'settings':
-        return <SettingsPage navigate={navigate} />;
+        return <Settings navigate={navigate} />;
       default:
         console.warn('Unknown page:', currentPage, 'redirecting to home');
         return <Home navigate={navigate} />;

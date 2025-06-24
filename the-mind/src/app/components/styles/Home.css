@@ -100,33 +100,27 @@
   box-shadow: 0 10px 25px rgba(194, 115, 10, 0.3);
 }
 
-/* Button positioning */
+/* Button positioning - 4 buttons in a diamond/cross layout */
 .menu-button.play {
-  top: 15%;
-  left: 20%;
+  top: 20%;
+  left: 50%;
   transform: translate(-50%, -50%);
 }
 
-.menu-button.online {
-  top: 50%;
-  right: 15%;
-  transform: translate(50%, -50%);
-}
-
 .menu-button.rules {
-  bottom: 15%;
+  bottom: 20%;
   left: 50%;
   transform: translate(-50%, 50%);
 }
 
 .menu-button.settings {
   top: 50%;
-  left: 15%;
+  left: 20%;
   transform: translate(-50%, -50%);
 }
 
 .menu-button.auth {
-  top: 15%;
+  top: 50%;
   right: 20%;
   transform: translate(50%, -50%);
 }
@@ -168,6 +162,23 @@
     font-size: 12px;
   }
 
+  /* Adjust positioning for smaller screens */
+  .menu-button.play {
+    top: 25%;
+  }
+
+  .menu-button.rules {
+    bottom: 25%;
+  }
+
+  .menu-button.settings {
+    left: 15%;
+  }
+
+  .menu-button.auth {
+    right: 15%;
+  }
+
   .info-panel {
     bottom: 20px;
     margin: 0 20px;
@@ -187,5 +198,28 @@
 
   .logo-the-mind {
     padding: 15px 20px;
+  }
+
+  /* Stack buttons vertically on very small screens */
+  .menu-button.play {
+    top: 30%;
+    left: 50%;
+  }
+
+  .menu-button.auth {
+    top: 45%;
+    right: 50%;
+    transform: translate(50%, -50%);
+  }
+
+  .menu-button.settings {
+    top: 60%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .menu-button.rules {
+    bottom: 30%;
+    left: 50%;
   }
 }

@@ -1,7 +1,7 @@
 // src/app/components/AuthPage.tsx
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { apiService } from '../services/api';
 import './styles/AuthPage.css';
 
@@ -11,8 +11,17 @@ interface AuthPageProps {
   navigate: (page: CurrentPage) => void;
 }
 
+interface UserProfile {
+  user_id: string;
+  username: string;
+  email: string;
+  created_at: string;
+}
+
 const AuthPage: React.FC<AuthPageProps> = ({ navigate }) => {
   const [isLogin, setIsLogin] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -20,8 +29,38 @@ const AuthPage: React.FC<AuthPageProps> = ({ navigate }) => {
     confirmPassword: ''
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  // Check authentication status on component mount
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      if (typeof window !== 'undefined') {
+        const token = localStorage.getItem('themind_user_token');
+        const userId = localStorage.getItem('themind_user_id');
+        
+        if (token && userId) {
+          try {
+            // Fetch user profile to verify token is still valid
+            const profile = await apiService.getUserProfile(userId);
+            setUserProfile(profile);
+            setIsAuthenticated(true);
+          } catch (error) {
+            // Token is invalid, clear localStorage
+            localStorage.removeItem('themind_user_token');
+            localStorage.removeItem('themind_user_id');
+            localStorage.removeItem('themind_username');
+            localStorage.removeItem('themind_is_guest');
+            setIsAuthenticated(false);
+          }
+        }
+      }
+      setIsLoadingProfile(false);
+    };
+
+    checkAuthStatus();
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -91,19 +130,117 @@ const AuthPage: React.FC<AuthPageProps> = ({ navigate }) => {
   };
 
   const handleSkipAuth = () => {
-    // Generate a temporary guest user
-    const guestId = `guest_${Date.now()}`;
-    const guestName = `Invitat_${Math.random().toString(36).substring(2, 6)}`;
-    
+    // Set guest mode
     if (typeof window !== 'undefined') {
-      localStorage.setItem('themind_user_id', guestId);
-      localStorage.setItem('themind_username', guestName);
       localStorage.setItem('themind_is_guest', 'true');
+      localStorage.removeItem('themind_user_token');
+      localStorage.removeItem('themind_user_id');
+      localStorage.removeItem('themind_username');
     }
-    
     navigate('setup');
   };
 
+  const handleLogout = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('themind_user_token');
+      localStorage.removeItem('themind_user_id');
+      localStorage.removeItem('themind_username');
+      localStorage.removeItem('themind_is_guest');
+    }
+    setIsAuthenticated(false);
+    setUserProfile(null);
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('ro-RO', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  // Show loading while checking auth status
+  if (isLoadingProfile) {
+    return (
+      <div className="auth-page">
+        <div className="auth-container">
+          <div className="loading-spinner">
+            <p>Se încarcă...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show profile page if authenticated
+  if (isAuthenticated && userProfile) {
+    return (
+      <div className="auth-page">
+        <div className="auth-container">
+          <button 
+            className="back-button"
+            onClick={() => navigate('home')}
+          >
+            ← Înapoi
+          </button>
+
+          <div className="profile-header">
+            <h1>👤 Profilul Meu</h1>
+            <p>Informațiile contului tău</p>
+          </div>
+
+          <div className="profile-content">
+            <div className="profile-info">
+              <div className="info-item">
+                <label>Nume de utilizator:</label>
+                <span>{userProfile.username}</span>
+              </div>
+              
+              <div className="info-item">
+                <label>Email:</label>
+                <span>{userProfile.email}</span>
+              </div>
+              
+              <div className="info-item">
+                <label>Membru din:</label>
+                <span>{formatDate(userProfile.created_at)}</span>
+              </div>
+              
+              <div className="info-item">
+                <label>ID Utilizator:</label>
+                <span className="user-id">{userProfile.user_id.slice(-8)}</span>
+              </div>
+            </div>
+
+            <div className="profile-actions">
+              <button 
+                className="play-button"
+                onClick={() => navigate('setup')}
+              >
+                🎮 Începe să Joci
+              </button>
+              
+              <button 
+                className="logout-button"
+                onClick={handleLogout}
+              >
+                🚪 Deconectează-te
+              </button>
+            </div>
+          </div>
+
+          <div className="profile-stats">
+            <h3>📊 Statistici</h3>
+            <p className="coming-soon">
+              Statisticile de joc vor fi disponibile în curând!
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show auth form if not authenticated
   return (
     <div className="auth-page">
       <div className="auth-container">
@@ -115,7 +252,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ navigate }) => {
         </button>
 
         <div className="auth-header">
-          <h1>Cont Jucător</h1>
+          <h1>🔐 Autentificare</h1>
           <p>Creează un cont sau autentifică-te pentru a salva progresul</p>
         </div>
 
